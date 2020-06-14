@@ -4,8 +4,13 @@ const cors = require('cors');
 const expressWs = require('express-ws')(app);
 
 let db = new Map();
+let controllers = new Set();
 app.use(cors())
+function noop() { }
 
+function heartbeat() {
+    this.isAlive = true;
+}
 
 app.get('/test', function (req, res) {
     res.end("get route test");
@@ -34,6 +39,7 @@ function encodeForChip(type, data) {
 }
 
 app.ws('/control', function (ws, req) {
+    controllers.add(ws);
     ws.on('message', function (msg) {
         const parsed = safeParseJson(msg);
         if (parsed) {
@@ -41,20 +47,47 @@ app.ws('/control', function (ws, req) {
             if (db.has(id)) {
                 db.get(id).data = { ...db.get(id).data, ...update };
                 db.get(id).ws.send(encodeForChip("update", update));
-                ws.send(JSON.stringify({ type: "update", update: db.get(id).data }));
+                ws.send(JSON.stringify({ type: "update", id, update: db.get(id).data }));
             }
         }
     });
+
+    ws.on('close', function () {
+        controllers.delete(ws);
+    });
 });
 
+function removeClient(id) {
+    db.delete(id);
+    for (const ws of controllers) {
+        try {
+            ws.send(JSON.stringify({ type: "dbreset", update: [...db.keys()].map(k => ({ data: db.get(k).data, id: k })) }));
+        } catch (e) {
+
+        }
+    }
+}
 
 app.ws('/chip/:id', function (ws, req) {
     const { id } = req.params;
+    setInterval(function timeout() {
+        if (ws.isAlive === false) {
+            removeClient(id);
+            return ws.terminate()
+        };
+        ws.isAlive = false;
+        ws.ping(noop);
+    }, 2000);
+
     if (!db.has(id)) {
         db.set(id, { ws, data: {} });
     } else {
         db.get(id).ws = ws;
     }
+
+    ws.on('close', function () {
+        removeClient(id);
+    });
 
     ws.on('message', function (msg) {
         const parsed = safeParseJson(msg);
