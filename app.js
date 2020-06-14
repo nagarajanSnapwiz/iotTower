@@ -68,9 +68,27 @@ function removeClient(id) {
     }
 }
 
+function sendChipUpdate(id) {
+    for (const ws of controllers) {
+        try {
+            ws.send(JSON.stringify({ type: "update", update: db.get(id).data, id }));
+        } catch (e) {
+            console.error('sending control error', e);
+        }
+    }
+}
+
 app.ws('/chip/:id', function (ws, req) {
     const { id } = req.params;
-    setInterval(function timeout() {
+    ws.isAlive = true;
+    if (!db.has(id)) {
+        db.set(id, { ws, data: {} });
+    } else {
+        db.get(id).ws = ws;
+    }
+    sendChipUpdate(id);
+    ws.on('pong', heartbeat);
+    const interval = setInterval(function timeout() {
         if (ws.isAlive === false) {
             removeClient(id);
             return ws.terminate()
@@ -79,14 +97,9 @@ app.ws('/chip/:id', function (ws, req) {
         ws.ping(noop);
     }, 2000);
 
-    if (!db.has(id)) {
-        db.set(id, { ws, data: {} });
-    } else {
-        db.get(id).ws = ws;
-    }
-
     ws.on('close', function () {
         removeClient(id);
+        clearInterval(interval);
     });
 
     ws.on('message', function (msg) {
