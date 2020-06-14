@@ -41,6 +41,7 @@ app.ws('/control', function (ws, req) {
             if (db.has(id)) {
                 db.get(id).data = { ...db.get(id).data, ...update };
                 db.get(id).ws.send(encodeForChip("update", update));
+                ws.send(JSON.stringify({ type: "update", update: db.get(id).data }));
             }
         }
     });
