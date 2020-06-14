@@ -1,0 +1,21 @@
+{
+  "name": "iot-tower",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "author": "Nagarajan N",
+  "license": "ISC",
+  "dependencies": {
+    "bufferutil": "^4.0.1",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-ws": "^4.0.0",
+    "lodash": "^4.17.15",
+    "utf-8-validate": "^5.0.2",
+    "ws": "^7.3.0"
+  }
+}
