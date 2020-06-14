@@ -99,7 +99,7 @@ app.ws('/chip/:id', function (ws, req) {
 
     ws.on('close', function () {
         removeClient(id);
-        clearInterval(interval);
+        // clearInterval(interval);
     });
 
     ws.on('message', function (msg) {
