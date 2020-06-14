@@ -13,7 +13,7 @@ app.get('/test', function (req, res) {
 
 
 app.get("/chip", (req, res) => {
-    res.json([...db.keys()].map(k => db.get(k).data));
+    res.json([...db.keys()].map(k => ({ data: db.get(k).data, id: k })));
 });
 
 app.get("/chip/:id", (req, res) => {
