@@ -88,14 +88,14 @@ app.ws('/chip/:id', function (ws, req) {
     }
     sendChipUpdate(id);
     ws.on('pong', heartbeat);
-    const interval = setInterval(function timeout() {
-        if (ws.isAlive === false) {
-            removeClient(id);
-            return ws.terminate()
-        };
-        ws.isAlive = false;
-        ws.ping(noop);
-    }, 2000);
+    // const interval = setInterval(function timeout() {
+    //     if (ws.isAlive === false) {
+    //         removeClient(id);
+    //         return ws.terminate()
+    //     };
+    //     ws.isAlive = false;
+    //     ws.ping(noop);
+    // }, 2000);
 
     ws.on('close', function () {
         removeClient(id);
